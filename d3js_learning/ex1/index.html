@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="../d3.v4.min.js"></script>
+    </head>
+    <body>
+       <div id="Div">
+       </div>
+       <script>
+            const myData = [100,321,21,78,89,12];
+            const padding  = {top:20, right:20, bottom:20, left:20};
+            const svgHeight = 400;
+            const svgWidth = 400;
+            const rectStep = 55;
+            const rectWidth = 40;
+            const svg = d3.selectAll("#Div").append("svg").attr("height",svgHeight).attr("width",svgWidth);
+            svg.selectAll("rect").data(myData).enter().append("rect").attr("fill","red")
+                .attr("x",(d,i)=>padding.left + i*rectStep)
+                .attr("y",(d,i)=>svgHeight-padding.bottom-d)
+                .attr("height",(d)=>d)
+                .attr("width",rectWidth);
+            svg.selectAll("text").data(myData).enter().append("text").attr("fill","grey")
+                .attr("font-size","16px")
+                .attr("text-anchor","middle")
+                .attr("x",(d,i)=>padding.left+i*rectStep+rectWidth/2)
+                .attr("y",(d,i)=>svgHeight-padding.bottom-d-10)
+                .text((d)=>d);
+        </script>
+    </body>
+
+</html>
