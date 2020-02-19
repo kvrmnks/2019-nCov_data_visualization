@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+    <title>
+
+    </title>
+    <body>
+        <svg height=300 width=300></svg>
+        <script src="../d3.v4.min.js"></script>
+        <script>
+            const viz = (data)=>{
+                d3.select('body').selectAll('div.cities')
+                  .data(data)
+                  .enter()
+                  .append('div')
+                  .attr('class','cities')
+                  .html(d=>d.label)
+                var yScale = d3.scaleLinear()
+                               .domain([0,d3.max(data,d=>parseInt(d.population))])
+                               .range([0,200])
+                d3.select('svg').selectAll('rect')
+                  .data(data)
+                  .enter()
+                  .append('rect')
+                  .attr('width',10)
+                  .attr('height',d=>yScale(parseInt(d.population)))
+                  .attr('x',(d,i)=>i*10)
+                  .attr('y',(d)=>300-yScale(parseInt(d.population)))
+            };
+            d3.csv("cities.csv",(error,data)=>{
+                if(error){
+                    console.log(error);
+                }else{
+                    viz(data);
+                }
+            });
+            
+        </script>
+    </body>
+</html>
