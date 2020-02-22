@@ -20,7 +20,7 @@
                 d3.select('svg').selectAll('rect')
                   .data(data)
                   .enter()
-                  .append('rect')
+                  .append('rect').transition()
                   .attr('width',10)
                   .attr('height',d=>yScale(parseInt(d.population)))
                   .attr('x',(d,i)=>i*10)

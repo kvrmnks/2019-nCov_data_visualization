@@ -76,6 +76,7 @@
 
                 svg.append('path')
                    .attr('class','mp')
+                   .transition()
                    .attr('d',line(data))
                    .attr('stroke','red')
                    .attr('fill','none');               
