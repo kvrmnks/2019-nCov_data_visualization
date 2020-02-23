@@ -1,5 +1,5 @@
 function load() {
-    d3.json('../recourses/Province.json',loadProvince);
+    d3.json('/recourses/Province.json',loadProvince);
     function loadProvince(data){
         //console.log(data);
         d3.select('#data_menu').selectAll('li').data(d3.keys(data)).enter()
@@ -11,7 +11,7 @@ function load() {
 var gDataPageRawData = null;
 var gDataPageGroupedData = null;
 function showDataByProvince(province){
-    if(gDataPageRawData == null) d3.csv('../recourses/DXYArea.csv',d=>analysisData(d,province));
+    if(gDataPageRawData == null) d3.csv('/recourses/DXYArea.csv',d=>analysisData(d,province));
     else{
         analysisData(gDataPageRawData,province);
     }
