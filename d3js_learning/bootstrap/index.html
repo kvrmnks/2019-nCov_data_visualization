@@ -7,8 +7,10 @@
     <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
     <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="js/d3.v4.min.js"></script>
+    <script src="js/chart.js"></script>
 </head>
 <body>
+
     <nav class="navbar navbar-inverse">
         <div class="container container-fluid">
             <div class="navbar-header">
@@ -22,5 +24,57 @@
         </div>
     </nav>
 
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                选择显示数据地区
+            </div>
+
+            <div class="panel-body">
+                <div class="container">
+                    <svg id='index_china_chart' height="700px" width="800px"></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                选择省份
+            </div>
+            <div class="panel-body">
+                <div class="container">
+                    <svg id="index_province_chart" height="700px" width="800px">
+
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                确诊曲线
+            </div>
+            <div class="panel-body">
+
+            </div>
+        </div>
+    </div>
+
+
+    <footer class="panel-footer">
+        <div class="container-fluid">
+            <p align="center">Copyright © 2020 Kvrmnks</p>
+            <p align="center">不用于商业</p>
+        </div>
+    </footer>
+
+    <script>
+        createChinaMap('#index_china_chart','/bootstrap/recourses/china.geoJson');
+
+    </script>
 </body>
 </html>

@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+    <head>
+        <title>
+            练习画地图
+        </title>
+        <script src="../d3.v4.min.js"></script>
+    </head>
+    <body>
+        <div>
+            <svg height="750px" width="750px">
+
+            </svg>
+        </div>
+        <script>
+            function convertType(province){
+                if(province == '内蒙古自治区' || province == '黑龙江省')
+                    province = province.slice(0,3);
+                else province = province.slice(0,2);
+                return province;
+            }
+            d3.json('china.geojson',d=>createMap(d));
+            function createMap(data) {
+                var projection = d3.geoMercator().scale(700).translate([-900,800]);
+                var geoPath = d3.geoPath().projection(projection);
+                d3.select('svg').selectAll('path').data(data.features)
+                .enter().append('path').attr('d',geoPath).attr('fill','none').attr('stroke','black');
+                console.log(data.features);
+               // console.log(data.features[0].properties.centroid[0]);
+                d3.select('svg').append('g').selectAll('circle').data(data.features)
+                    .enter()
+                    .append('text')
+                    .attr('x',d=>geoPath.centroid(d)[0])
+                    .attr('y',d=>geoPath.centroid(d)[1])
+                    .attr('text-anchor','middle')
+                    .style('font-size','10px')
+                    .text(d=>convertType(d.properties.name));
+            }
+        </script>
+    </body>
+</html>

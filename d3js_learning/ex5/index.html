@@ -4,29 +4,52 @@
         <script src='../d3.v4.min.js'></script>
     </head>
     <body>
-        <svg height = 10000 width = 10000></svg>
+        <svg height = 500 width = 500></svg>
         <script>
-            d3.json("chinaMap.json", createMap);
+            d3.json("sd.geojson", createMap);
             function createMap(countries) {
+                height = 500;
+                width = 500;
                 var aProjection = d3.geoMercator()
-                .scale(600)
-                .translate([-500, 800]);
+               // .center([463, 36])
+                .scale(4000)
+               // .translate([width / 2, height / 2]);
+                //.translate([250, 250]);
                 var geoPath = d3.geoPath().projection(aProjection);
-
-                d3.select("svg").selectAll("path").data(countries.features)
+                
+                d3.select("svg").selectAll("g").data(countries.features)
                 .enter()
+                .append('g')
                 .append("path")
                 .attr("d", geoPath)
                 .attr('stroke','red')
                 .attr('fill','white')
                 .attr("class", "countries")
-                .on('click',function (d){
+                .attr('onclick',function (d){
+                    console.log(d);
+                    console.log(geoPath.bounds(d));
+                    rightAn = geoPath.bounds(d);
+                    //console.log(this.parentNode);
+                    //d3.select(d3.select(this).node().parentNode).attr('transform','translate(100,100)');
+                    //this.parentNode.style.transform = 'translate(' + (-rightAn[0][0]) +',' + (-rightAn[0][1]) + ')';
+                    //console.log(this.parentElement);
                     if(this.style.fill == 'blue'){
                         this.style.fill='white';
                     }else{
                         this.style.fill = 'blue';
                     }
                 });
+                var minX = 99999;
+                var minY = 99999;
+                d3.selectAll('g').each((d)=>{
+                    let cur = geoPath.bounds(d);
+                    console.log(d);
+                    let x = cur[0][0];
+                    let y = cur[0][1];
+                    if(x < minX) minX = x;
+                    if(y < minY) minY = y;
+                });
+                d3.selectAll('g').attr('transform','translate('+(-minX)+','+(-minY)+')');
             };
         </script>
     </body>
