@@ -11,7 +11,7 @@ function load() {
 var gDataPageRawData = null;
 var gDataPageGroupedData = null;
 function showDataByProvince(province){
-    if(gDataPageRawData == null) d3.csv('/bootstrap/recourses/DXYArea.csv',d=>analysisData(d,province));
+    if(gDataPageRawData == null) d3.csv('/bootstrap/recourses/Area2.csv',d=>analysisData(d,province));
     else{
         analysisData(gDataPageRawData,province);
     }
@@ -33,7 +33,7 @@ function analysisData(data,province){
     gDataPageRawData = data;
     if(gDataPageGroupedData == null){
         gDataPageGroupedData = d3.nest().key(d=>convertType(d.provinceName)).entries(data);
-
+        //console.log(gDataPageGroupedData);
     }
 /*    console.log(province);
     console.log(gDataPageGroupedData);*/
@@ -49,22 +49,25 @@ function analysisData(data,province){
 function updateTable(data){
     data = d3.nest().key(d=>d.cityName).entries(data.values);
     console.log(data);
+    for(let i=0;i<data.length;i++){
+        data[i].values.sort((a,b)=>(a.updateTime < b.updateTime ? 1 : -1));
+    }
     d3.select('#data_tbody').selectAll('tr').remove();
     d3.select('#data_tbody').selectAll('tr').data(data).enter().append('tr');
     let Tr = d3.select('#data_tbody').selectAll('tr');
     Tr.append('td').classed('text-center',true).html(d=>d.values[0].cityName);
-    Tr.append('td').classed('text-center',true).html(d=>d.values[0].city_confirmedCount);
+    Tr.append('td').classed('text-center',true).html(d=>d.values[0].confirmedCount);
    // Tr.append('td').html(d=>d.values[0].city_suspectedCount);
-    Tr.append('td').classed('text-center',true).html(d=>d.values[0].city_deadCount);
-    Tr.append('td').classed('text-center',true).html(d=>d.values[0].city_curedCount);
+    Tr.append('td').classed('text-center',true).html(d=>d.values[0].deadCount);
+    Tr.append('td').classed('text-center',true).html(d=>d.values[0].curedCount);
     for(x in data) {
         cur = '';
         let tmp = data[x].values[0];
         cur += tmp.cityName + ' ';
-        cur += tmp.city_confirmedCount + ' ';
-        cur += tmp.city_curedCount + ' ';
-        cur += tmp.city_deadCount + ' ';
-        cur += tmp.city_suspectedCount + ' ';
+        cur += tmp.confirmedCount + ' ';
+        cur += tmp.curedCount + ' ';
+        cur += tmp.deadCount + ' ';
+        cur += tmp.suspectedCount + ' ';
         console.log(cur);
     }
 }

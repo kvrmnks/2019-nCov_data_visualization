@@ -1,0 +1,247 @@
+<html>
+	<body></body>
+	<style>
+		div{
+			background: #F2F4FF;
+			width: 100px;
+			height: 40px;
+			position: absolute;
+			opacity: 0;
+			text-align: center;
+			font-size: 12px;
+			line-height: 40px;
+		}
+	</style>
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+	<script>
+		// 数据准备
+		let data = [{label: '下下等', num: 5},{label: '下等', num: 10},{label: '哈等', num: 10},{label: '和等', num: 10}, {label: '中低等', num: 38}, {label: '高等', num: 98}, {label: '哟等', num: 11}, {label: '中上等', num: 60}, {label: '中等', num: 50}, {label: '上等', num: 80}];
+		let marge = {top: 0, right: 60, bottom: 60, left: 0};
+		let width = 1000, height = 800;
+		// 弧形生成器内、外半径
+		let innerRadius = 0, outerRadius = 150;
+		let svg = d3.select('body').append('svg').attr('width', width).attr('height', height);
+		let g = svg.append('g').attr('transform', 'translate(' + marge.left + ',' + marge.top  + ')');
+		
+		// 颜色比例尺
+		let colorScale = d3.scaleOrdinal().domain(d3.range(data.length))
+			.range(d3.schemeCategory10);
+		// 创建饼状图
+		let pie = d3.pie().value(function(d) {return d.num}).sort(null);
+		
+		// 创建弧形生成器
+		let arc = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius);
+		let arc2 = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius + 30);
+		// 饼状图生成器转换数据
+		let pieData = pie(data);
+		// 排序
+		//pieData.sort(function(a, b) {
+		//	return b.index - a.index;
+		//});
+		// 计算饼状图各区域的动画持续时间和等待时间
+		//let angle = max(pieData);
+		//let delay = 0;
+		//pieData.forEach(function(d, i) {
+		//	d.delay = delay - 500;
+		//	delay += d.duration = 5000 * (d.endAngle - d.startAngle) / angle;
+		//});
+		// 开始绘制，先为每个扇形及其对应的文字建立一个分组<g>
+		let arcs = g.selectAll('.g').data(pieData).enter().append('g').attr('cursor', 'pointer')
+			.attr('transform', 'translate(' + width/2 + ',' + height/2 + ')');
+		// 绘制饼状图的各个扇形
+		arcs.append('path')
+			.transition()
+			.delay(0)
+			.duration(500)
+			//.each(d3.easeBounceInOut)
+			.attrTween('d', function(d, i) {
+				let interpolate = d3.interpolate(d.startAngle, d.endAngle);
+				return function(t) {
+					d.endAngle = interpolate(t);
+					return arc(d);
+				}
+			})
+			.attr('fill', function(d, i) {
+				d.color = colorScale(i);
+				return d.color;
+			});
+		// 绘制饼状图上的文字信息
+		arcs.append('text')
+			.attr('transform', function(d) {
+				return 'translate(' + arc.centroid(d) + ')';
+			})
+			.attr('text-anchor', 'middle')
+			.text(function(d) {
+				// 文字不超过扇形能容纳的长度才将其显示
+				if (getStrLen(d.data.label) < (outerRadius / 2) * Math.sin(d.endAngle - d.startAngle)) {
+					return ((d.endAngle - d.startAngle) / 6.283185307179586 * 100).toFixed(2) + '%';
+				}
+			});
+		// 图注个数
+		let count = 0;
+		let before = 0;
+		// 图注文字
+		let text=svg.selectAll(".text")
+            .data(pieData) //返回是pie(data0)
+            .enter().append("g")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+            .append("text")
+            .style('text-anchor', function(d, i) {
+                //根据文字在是左边还是右边，在右边文字是start，文字默认都是start。
+                return (d.startAngle + d.endAngle)/2 < Math.PI ? 'start' : 'end';
+            })
+            .attr('transform', function(d, i) {
+                var pos = arc.centroid(d);      //centroid(d)计算弧中心
+                pos[0] = outerRadius*((d.startAngle+d.endAngle) / 2 < Math.PI ? 1.4 : -1.4);
+				if (overRange(d)) {
+					if (before == 0) before = pos[1];
+					pos[1] *= (2.1 + count * 0.4);                    //将文字移动到外面去。
+					// 超出将count（图注数量）自加
+					count++;
+					if (count > 2) count = before = 0;
+				}else {
+					count = before = 0;
+				}
+                return 'translate(' + pos + ')';
+            })
+            .attr("dy",".3em")              //将文字向下平移.3em
+            .text(function(d) {             //设置文本
+				// 如果文本长度超过扇形长度，则才显示图注
+				if (overRange(d)) {
+					return ((d.endAngle - d.startAngle) / 6.283185307179586 * 100).toFixed(2) + '%';
+				}
+                return '';
+            });
+		
+		count = 0; // 重置
+		// 图注连线
+		let line = svg.selectAll(".line")      //添加文字和弧之间的连线
+			.data(pieData) //返回是pie(data0)
+			.enter().append("g")
+			.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+			.append("polyline")
+			.attr('points', function(d, i) {
+				var pos1 = arc.centroid(d), pos2 = arc.centroid(d), pos3 = arc.centroid(d);
+				// 如果文本长度超过扇形长度，则才显示图注
+				if (overRange(d)) {
+					pos1[0]*=0,pos1[1]*=0;
+					pos2[0] *= (2.1 + count * 0.4), pos2[1] *= (2.1 + count * 0.4);
+					pos3[0] = outerRadius * ((d.startAngle + d.endAngle) / 2 < Math.PI ? 1.4 : -1.4);
+					pos3[1] *= (2.1 + count * 0.4);
+					count++;
+					if (count > 2) {
+						before = pos2[1];
+						count = 0;
+					}	
+					//pos2是从圆弧出来到长直虚线的长度，pos3就是将pos2平移后得到的位置
+					//三点链接在一起就成了线段。
+					return [pos1, pos2, pos3];
+				}else {
+					before = pos2[1];
+					count = 0;
+				}
+			})
+			.style('fill', 'none')
+			.style('stroke',function(d,i){
+				return d.color;
+			})
+			.style('stroke-width', "3px")
+			.style('stroke-dasharray',"5px");
+			
+		let label=svg.selectAll('.label')      //添加右上角的标签
+			.data(pieData)
+			.enter()
+			.append('g')
+			.attr("transform","translate(" + (width / 2 + outerRadius * 2) + "," + 10 + ")");
+		label.append('rect')        //标签中的矩形
+			.style('fill',function(d,i){
+				return colorScale(i);
+			})
+			.attr('x', 0)
+			.attr("y",function(d,i){
+				return (height - outerRadius) / 2 + (i - 1) * 30;
+			})
+			.attr('rx','10')     //rx=ry 会出现圆角
+			.attr('ry','10')
+			.attr('width',50)
+			.attr('height',20);
+		label.append('text')            //标签中的文字
+			.attr('x',function(d,i){
+				return 65;              //因为rect宽度是50，所以把文字偏移15,在后面再将文字设置居中
+			})
+			.attr("y",function(d,i){        
+				return (height - outerRadius) / 2 + 15 + (i - 1) * 30;
+			})
+			.text(function(d){
+				return d.data.label;
+			})
+			.style({
+				"font-size":"10px",
+				"text-anchor":"middle",
+				'fill':"white",
+				"font-weight":600
+			});
+ 
+		// 获取最大的endAngle 
+		//function max(data) {
+		//	if (!data instanceof Array) return data;
+		//	let max;
+		//	data.forEach(function(d, i) {
+		//		if (i == 0) max = d.endAngle;
+		//		if (max < d.endAngle) 
+		//			max = d.endAngle;
+		//	});
+		//	return max;
+		//}
+		
+		// 文字是否超出扇形区域(超出返回true，不超出返回false)
+		function overRange(d) {
+			// 扇形长度（不是弧长，是从扇形左边的中间位置引出的一条水平线与右边相交的直线长度）
+			// 计算公式：扇形半径/2 * sin(弧度)
+			let length = (outerRadius / 2) * Math.sin(d.endAngle - d.startAngle);
+			// 字符串长度
+			let len = getStrLen(d.data.label);
+			if (len >= length) {
+				return true;
+			}
+			return false;
+		}
+		// 悬浮提示框
+		let tooltip = d3.select('body').append('div').style('position','absolute');
+		
+		arcs.on('mouseover', function() {
+			let label;
+			d3.select(this).select('path').transition().attr('d', function(d) {
+				label = d.data.label;
+				return arc2(d);
+			});
+			// 悬浮在直方图上时，显示提示框
+			tooltip.html(label).transition().duration(500).style('left', d3.event.pageX - 20+'px')
+				.style('top', d3.event.pageY + 20+'px').style('opacity', 1.0);
+            console.log(label);
+            console.log(d3.event.pageX);
+            console.log(d3.event.pageY);
+		});
+		arcs.on('mouseout', function() {
+			d3.select(this).select('path').transition().attr('d', function(d) {
+				return arc(d);
+			});
+			// 隐藏悬浮框
+			tooltip.transition().style('opacity', 0);
+		});
+		
+		// 获取字符串所占像素
+		function getStrLen(val) {
+			var len = 0;
+			for (var i = 0; i < val.length; i++) {
+				var length = val.charCodeAt(i);
+				if(length >= 0 && length <= 128) {
+					len += 1;
+				}else {
+                    len += 2;
+                }
+            }
+            return len * 7.1;
+        }
+	</script>
+</html>
